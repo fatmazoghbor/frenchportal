@@ -79,7 +79,7 @@
 
   <!-- LOGIN SCREEN -->
   <div id="loginScreen" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-french-darkCard max-w-md w-full p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 text-center space-y-6">
+    <div class="bg-white dark:bg-french-darkCard max-w-md w-full p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 text-center space-y-5">
       <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-french-blue to-french-red flex items-center justify-center text-white text-3xl font-bold shadow-lg">
         🇫🇷
       </div>
@@ -88,11 +88,14 @@
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in with your Google Account or select your role to launch the portal.</p>
       </div>
 
-      <div class="p-4 bg-french-tint dark:bg-slate-800/80 rounded-2xl border border-french-blue/20 text-left space-y-2 text-xs">
+      <!-- Live GitHub Link Banner -->
+      <div class="p-3 bg-french-tint dark:bg-slate-800/80 rounded-2xl border border-french-blue/20 text-left space-y-1 text-xs">
         <div class="flex items-center gap-2 text-french-blue dark:text-blue-300 font-semibold">
-          <i class="fa-solid fa-envelope-circle-check"></i> Multi-Recipient Email Testing Active
+          <i class="fa-solid fa-globe"></i> Live Public Portal Link:
         </div>
-        <p class="text-slate-600 dark:text-slate-300">Notifications are dispatched to both <code class="font-mono text-french-blue font-bold">almgnahii@gmail.com</code> and <code class="font-mono text-french-blue font-bold">fzoghbour@gmail.com</code>.</p>
+        <a href="https://fatmazoghbor.github.io/frenchportal/" target="_blank" class="font-mono text-xs text-blue-600 dark:text-blue-400 underline break-all block font-bold hover:text-blue-800">
+          https://fatmazoghbor.github.io/frenchportal/
+        </a>
       </div>
 
       <div id="googleSignInBtn" class="flex justify-center pt-1 min-h-[44px]"></div>
@@ -613,6 +616,8 @@
     const EMAILJS_SERVICE_ID = "service_ei8bjij";
     const EMAILJS_TEMPLATE_ID = "template_yy9k01i";
 
+    const LIVE_PORTAL_URL = "https://fatmazoghbor.github.io/frenchportal/";
+
     const PRELOADED_FLASHCARDS = [
       { id: 'l1_1', fr: 'Bonjour', en: 'Hello (daytime)', deck: 'Lesson 1', known: false },
       { id: 'l1_2', fr: 'Bonsoir', en: 'Good evening', deck: 'Lesson 1', known: false },
@@ -662,11 +667,13 @@
       return true;
     }
 
-    // Email Dispatcher
+    // Email Dispatcher (Includes GitHub Portal Link in body)
     function sendEmailNotification(subjectOrData, messageText) {
       const isObj = typeof subjectOrData === 'object' && subjectOrData !== null;
       const subject = isObj ? (subjectOrData.subject || "Course Update") : (subjectOrData || "Course Update");
-      const message = isObj ? (subjectOrData.message || "") : (messageText || "");
+      let baseMessage = isObj ? (subjectOrData.message || "") : (messageText || "");
+      
+      const message = `${baseMessage}\n\nAccess the portal here: ${LIVE_PORTAL_URL}\n\nEmail sent via EmailJS.com`;
 
       NOTIFICATION_EMAILS.forEach(recipientEmail => {
         if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY) {
@@ -721,7 +728,7 @@
     function initGoogleAuth() {
       if (typeof google === 'undefined' || !google.accounts) return;
       google.accounts.id.initialize({
-        client_id: 583715142595-h1moli5vm0c0umql7vk1vh73k5f7n9s4.apps.googleusercontent.com,
+        client_id: GOOGLE_CLIENT_ID,
         callback: handleGoogleCredentialResponse
       });
       google.accounts.id.renderButton(
