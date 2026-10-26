@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>French Course Hub - Laith & Teacher Portal</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Google Identity Services Client Library -->
+  <script src="https://accounts.google.com/gsi/client" onload="initGoogleAuth()" async defer></script>
+  
+  <!-- EmailJS Client Library for Email Notifications -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontSize: { '3xs': '0.65rem' },
+          colors: {
+            french: {
+              blue: '#1d3f8f',
+              red: '#c8323c',
+              green: '#1e8a5f',
+              lightBg: '#f6f7fa',
+              cardBg: '#ffffff',
+              darkBg: '#0f1524',
+              darkCard: '#172037',
+              tint: '#e9eefb',
+              darkTint: '#1e2a4a'
+            }
+          },
+          fontFamily: {
+            sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+            serif: ['"Newsreader"', 'Georgia', 'serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    .perspective-1000 { perspective: 1000px; }
+    .transform-style-3d { transform-style: preserve-3d; }
+    .backface-hidden { backface-visibility: hidden; }
+    .rotate-y-180 { transform: rotateY(180deg); }
+    .card-inner { transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1); }
+    .card-inner.flipped { transform: rotateY(180deg); }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 3px; }
+  </style>
+</head>
+
+<body class="bg-french-lightBg dark:bg-french-darkBg text-slate-800 dark:text-slate-100 font-sans min-h-full flex flex-col transition-colors duration-200">
+
+  <!-- NOTIFICATION TOAST POPUP -->
+  <div id="emailToast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none max-w-sm">
+    <div class="bg-french-darkCard text-white p-4 rounded-2xl shadow-2xl border border-french-blue/40 flex items-start gap-3">
+      <div class="w-8 h-8 rounded-xl bg-french-blue flex items-center justify-center text-sm flex-shrink-0">
+        <i class="fa-solid fa-paper-plane"></i>
+      </div>
+      <div>
+        <h4 class="text-xs font-bold text-blue-300" id="toastTitle">Notification Sent</h4>
+        <p class="text-3xs text-slate-300 mt-0.5" id="toastMessage">Email alert dispatched.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="fixed inset-0 z-50 bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-french-darkCard max-w-md w-full p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 text-center space-y-6">
+      <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-french-blue to-french-red flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+        🇫🇷
+      </div>
+      <div>
+        <h2 class="font-serif text-2xl font-bold text-slate-900 dark:text-white">French Course Hub</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Sign in with your Google Account or select your role to launch the portal.</p>
+      </div>
+
+      <div class="p-4 bg-french-tint dark:bg-slate-800/80 rounded-2xl border border-french-blue/20 text-left space-y-2 text-xs">
+        <div class="flex items-center gap-2 text-french-blue dark:text-blue-300 font-semibold">
+          <i class="fa-solid fa-envelope-circle-check"></i> Multi-Recipient Email Testing Active
+        </div>
+        <p class="text-slate-600 dark:text-slate-300">Notifications are dispatched to both <code class="font-mono text-french-blue font-bold">almgnahii@gmail.com</code> and <code class="font-mono text-french-blue font-bold">fzoghbour@gmail.com</code>.</p>
+      </div>
+
+      <div id="googleSignInBtn" class="flex justify-center pt-1 min-h-[44px]"></div>
+
+      <div class="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-2">
+        <p class="text-3xs text-slate-400 uppercase tracking-wider font-semibold">Instant Quick Login</p>
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="quickLogin('fzoghbour@gmail.com', 'Fatma (Teacher)', 'teacher')" class="px-3 py-2.5 bg-french-blue hover:bg-blue-800 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-user-tie"></i> Teacher Login
+          </button>
+          <button onclick="quickLogin('almgnahii@gmail.com', 'Laith Al Mgnahi', 'student')" class="px-3 py-2.5 bg-french-green hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition">
+            <i class="fa-solid fa-user-graduate"></i> Laith (Student)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN DASHBOARD APP -->
+  <div id="dashboardApp" class="hidden flex-1 flex flex-col">
+
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-40 bg-white/90 dark:bg-french-darkCard/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          
+          <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-french-blue to-french-red flex items-center justify-center text-white text-xl font-bold shadow-md">
+              🇫🇷
+            </div>
+            <div>
+              <h1 class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                French Course Hub
+              </h1>
+              <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Interactive French Learning Portal</p>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-3">
+            <div id="userProfileBadge" class="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <img id="userAvatar" src="" class="w-6 h-6 rounded-full border border-french-blue" alt="Avatar">
+              <div class="text-left text-xs">
+                <p id="userNameLabel" class="font-semibold text-slate-800 dark:text-slate-200 leading-tight">--</p>
+                <p id="userRoleBadge" class="text-3xs text-french-blue dark:text-blue-300 font-medium leading-tight">--</p>
+              </div>
+            </div>
+
+            <button onclick="logoutGoogle()" title="Sign Out" class="p-2 text-slate-500 hover:text-red-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+
+            <button onclick="toggleDarkMode()" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+              <i id="themeIcon" class="fa-solid fa-moon"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </header>
+
+    <!-- ROLE BANNER NOTIFICATION -->
+    <div id="roleBanner" class="bg-french-blue/10 border-b border-french-blue/20 text-french-blue dark:text-blue-300 text-xs sm:text-sm px-4 py-2 text-center font-medium flex items-center justify-center gap-2">
+      <span>Account Status:</span>
+      <span id="roleBannerBadge" class="px-2 py-0.5 rounded-full bg-french-blue text-white text-xs font-semibold">Student Account</span>
+      <span class="text-slate-500 dark:text-slate-400 font-normal hidden sm:inline" id="roleBannerDesc">Logged in</span>
+    </div>
+
+    <!-- MAIN NAVIGATION TABS -->
+    <div class="bg-white dark:bg-french-darkCard border-b border-slate-200 dark:border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav class="flex space-x-2 sm:space-x-8 overflow-x-auto py-2 scrollbar-none">
+          <button onclick="switchTab('overview')" id="tab-overview" class="tab-btn active px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap border-b-2 border-french-blue text-french-blue dark:text-blue-400 flex items-center gap-2">
+            <i class="fa-solid fa-chart-pie"></i> Overview
+          </button>
+          <button onclick="switchTab('lectures')" id="tab-lectures" class="tab-btn px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-2">
+            <i class="fa-solid fa-book-open"></i> Lectures & PDF Materials
+          </button>
+          <button onclick="switchTab('flashcards')" id="tab-flashcards" class="tab-btn px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-2">
+            <i class="fa-solid fa-layer-group"></i> Vocabulary Flashcards
+          </button>
+          <button onclick="switchTab('homework')" id="tab-homework" class="tab-btn px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-2">
+            <i class="fa-solid fa-pen-to-square"></i> Homework Submissions
+          </button>
+          <button onclick="switchTab('midterms')" id="tab-midterms" class="tab-btn px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-2">
+            <i class="fa-solid fa-graduation-cap"></i> Midterms & Quizzes
+          </button>
+          <button onclick="switchTab('grades')" id="tab-grades" class="tab-btn px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-check"></i> Grades & Submissions
+          </button>
+        </nav>
+      </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+      <!-- TAB 1: OVERVIEW -->
+      <div id="view-overview" class="tab-content space-y-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white dark:bg-french-darkCard p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-french-blue dark:text-blue-300 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-file-pdf"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Lectures</p>
+              <h3 id="statLectures" class="text-2xl font-bold text-slate-900 dark:text-white">0 / 0</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Completed so far</p>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-french-darkCard p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-list-check"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Homeworks</p>
+              <h3 id="statHomeworks" class="text-2xl font-bold text-slate-900 dark:text-white">0 Due</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Assignments pending</p>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-french-darkCard p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-french-green dark:text-emerald-400 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Flashcards</p>
+              <h3 id="statFlashcards" class="text-2xl font-bold text-slate-900 dark:text-white">0 Mastered</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Cards learned</p>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-french-darkCard p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center space-x-4">
+            <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-300 flex items-center justify-center text-xl">
+              <i class="fa-solid fa-star"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Average Grade</p>
+              <h3 id="statGrade" class="text-2xl font-bold text-slate-900 dark:text-white">-- %</h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">Assessment average</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 space-y-4">
+            <div class="bg-white dark:bg-french-darkCard p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="font-serif text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <i class="fa-solid fa-bullhorn text-french-blue dark:text-blue-400"></i> Course Announcements
+                </h2>
+                <button onclick="openAnnouncementModal()" class="teacher-only px-3 py-1.5 bg-french-blue hover:bg-blue-800 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+                  <i class="fa-solid fa-plus"></i> Post Announcement
+                </button>
+              </div>
+              <div id="announcementsList" class="space-y-3"></div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="bg-white dark:bg-french-darkCard p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <h2 class="font-serif text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-clock text-amber-500"></i> Upcoming Deadlines
+              </h2>
+              <div id="upcomingDeadlinesList" class="space-y-3"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: LECTURES -->
+      <div id="view-lectures" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-serif text-2xl font-bold text-slate-900 dark:text-white">Lectures & Learning Materials</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Download and view PDF slides, DOCX files, and video lessons uploaded by the teacher.</p>
+          </div>
+          <button onclick="openLectureModal()" class="teacher-only self-start sm:self-auto px-4 py-2 bg-french-blue hover:bg-blue-800 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload PDF / Lecture File
+          </button>
+        </div>
+        <div id="lecturesContainer" class="space-y-6"></div>
+      </div>
+
+      <!-- TAB 3: FLASHCARDS -->
+      <div id="view-flashcards" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-serif text-2xl font-bold text-slate-900 dark:text-white">Vocabulary Flashcards</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Practice French words with 3D cards and native audio pronunciation.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="flashcardDeckFilter" onchange="filterFlashcards()" class="px-3 py-2 bg-white dark:bg-french-darkCard border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm font-medium">
+              <option value="ALL">All Lessons (12 Decks)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="max-w-xl mx-auto space-y-4">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <span id="fcPositionLabel">Card 1 of 1</span>
+            <span id="fcKnownLabel">Mastered: 0 / 0</span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div id="fcProgressBar" class="bg-french-green h-full w-0 transition-all duration-300"></div>
+          </div>
+
+          <div class="perspective-1000 w-full h-72 sm:h-80 my-4">
+            <div id="flashcard" onclick="flipFlashcard()" class="card-inner relative w-full h-full rounded-2xl cursor-pointer shadow-lg border border-slate-200 dark:border-slate-700">
+              <div class="face front absolute inset-0 rounded-2xl bg-white dark:bg-french-darkCard p-6 flex flex-col items-center justify-between text-center backface-hidden">
+                <div class="flex items-center justify-between w-full">
+                  <span id="fcDeckBadge" class="text-xs font-bold uppercase tracking-wider text-french-blue bg-french-tint dark:bg-slate-800 dark:text-blue-300 px-3 py-1 rounded-full">Lesson 1</span>
+                  <span class="text-xs text-slate-400">Français</span>
+                </div>
+                <div class="my-auto space-y-3">
+                  <h3 id="fcFrenchWord" class="font-serif text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white">Bonjour</h3>
+                  <button onclick="event.stopPropagation(); playCurrentAudio();" class="px-4 py-2 bg-french-tint dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-slate-700 text-french-blue dark:text-blue-300 rounded-full text-xs font-semibold flex items-center gap-2 mx-auto transition">
+                    <i class="fa-solid fa-volume-high text-sm"></i> Listen (fr-FR)
+                  </button>
+                </div>
+                <div class="text-xs text-slate-400 flex items-center gap-1">
+                  <i class="fa-solid fa-rotate"></i> Click or tap to flip
+                </div>
+              </div>
+
+              <div class="face back absolute inset-0 rounded-2xl bg-french-tint dark:bg-french-darkTint p-6 flex flex-col items-center justify-between text-center rotate-y-180 backface-hidden">
+                <div class="flex items-center justify-between w-full">
+                  <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Translation</span>
+                  <span class="text-xs text-slate-400">English</span>
+                </div>
+                <div class="my-auto">
+                  <h3 id="fcEnglishWord" class="font-serif text-2xl sm:text-3xl font-semibold text-french-blue dark:text-blue-300">Hello (daytime)</h3>
+                </div>
+                <div class="text-xs text-slate-400 flex items-center gap-1">
+                  <i class="fa-solid fa-rotate"></i> Click to flip back
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-2">
+            <button onclick="navigateFlashcard(-1)" class="px-4 py-2 bg-white dark:bg-french-darkCard border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-xs">
+              <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+            <div class="flex gap-2">
+              <button onclick="markFlashcard(false)" class="px-3 sm:px-4 py-2 bg-french-red text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-red-700 transition flex items-center gap-1">
+                <i class="fa-solid fa-xmark"></i> Learning
+              </button>
+              <button onclick="markFlashcard(true)" class="px-3 sm:px-4 py-2 bg-french-green text-white rounded-xl text-xs sm:text-sm font-semibold hover:bg-emerald-700 transition flex items-center gap-1">
+                <i class="fa-solid fa-check"></i> Mastered
+              </button>
+            </div>
+            <button onclick="navigateFlashcard(1)" class="px-4 py-2 bg-white dark:bg-french-darkCard border border-slate-200 dark:border-slate-700 hover:bg-slate-50 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-xs">
+              Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: HOMEWORK -->
+      <div id="view-homework" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-serif text-2xl font-bold text-slate-900 dark:text-white">Homework Assignments</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Students upload local PDF/DOCX files directly. Review teacher feedback and download corrected files.</p>
+          </div>
+          <button onclick="openHomeworkModal()" class="teacher-only self-start sm:self-auto px-4 py-2 bg-french-blue hover:bg-blue-800 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition">
+            <i class="fa-solid fa-plus"></i> Create Assignment
+          </button>
+        </div>
+        <div id="homeworkContainer" class="space-y-4"></div>
+      </div>
+
+      <!-- TAB 5: MIDTERMS & QUIZZES -->
+      <div id="view-midterms" class="tab-content hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-serif text-2xl font-bold text-slate-900 dark:text-white">Midterm Exams & Quizzes</h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Scheduled exams and evaluation quizzes with attached PDF exam sheets.</p>
+          </div>
+          <button onclick="openMidtermModal()" class="teacher-only self-start sm:self-auto px-4 py-2 bg-french-blue hover:bg-blue-800 text-white rounded-xl text-sm font-semibold flex items-center gap-2 transition">
+            <i class="fa-solid fa-plus"></i> Post Midterm / Quiz
+          </button>
+        </div>
+        <div id="midtermsContainer" class="space-y-4"></div>
+      </div>
+
+      <!-- TAB 6: GRADES -->
+      <div id="view-grades" class="tab-content hidden space-y-6">
+        <div>
+          <h2 class="font-serif text-2xl font-bold text-slate-900 dark:text-white">Grades & Submissions</h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Review student uploaded files, grade submissions, and return corrected documents.</p>
+        </div>
+        <div class="bg-white dark:bg-french-darkCard rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+            <h3 class="font-semibold text-base text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-receipt text-french-blue"></i> Homework Submissions
+            </h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs sm:text-sm">
+              <thead class="bg-slate-100 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 uppercase font-semibold text-3xs">
+                <tr>
+                  <th class="p-3 sm:p-4">Assignment</th>
+                  <th class="p-3 sm:p-4">Student</th>
+                  <th class="p-3 sm:p-4">Submitted File</th>
+                  <th class="p-3 sm:p-4">Status</th>
+                  <th class="p-3 sm:p-4">Grade</th>
+                  <th class="p-3 sm:p-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="homeworkSubmissionsTable" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- MODALS -->
+  <!-- 1. Add/Edit Lecture -->
+  <div id="modalLecture" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-french-darkCard rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="font-serif text-xl font-bold text-slate-900 dark:text-white">Upload Lecture & Document</h3>
+        <button onclick="closeModal('modalLecture')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="lectureForm" onsubmit="saveLecture(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Module Name</label>
+          <input type="text" id="lecModule" required placeholder="e.g. Module 1: Greetings & Basics" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Lecture Title</label>
+          <input type="text" id="lecTitle" required placeholder="e.g. Grammar Rules PDF" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Description / Notes</label>
+          <textarea id="lecDesc" rows="3" required placeholder="Lesson content details..." class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Upload PDF / Document / Video File</label>
+          <input type="file" id="lecFileInput" accept=".pdf,.doc,.docx,.mp4,.png,.jpg" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-xs">
+          <p class="text-3xs text-slate-400 mt-1">Upload a PDF or Word document for students to view and download.</p>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalLecture')" class="px-4 py-2 border rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-french-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-800">Upload & Dispatch Alerts</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Create Homework -->
+  <div id="modalHomework" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-french-darkCard rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="font-serif text-xl font-bold text-slate-900 dark:text-white">Create Homework Assignment</h3>
+        <button onclick="closeModal('modalHomework')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="homeworkForm" onsubmit="saveHomework(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Title</label>
+          <input type="text" id="hwTitle" required placeholder="e.g. Homework 1: Self Introduction" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Instructions</label>
+          <textarea id="hwInstructions" rows="3" required placeholder="Write instructions..." class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Due Date</label>
+            <input type="date" id="hwDueDate" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Total Points</label>
+            <input type="number" id="hwPoints" value="100" required min="10" max="100" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalHomework')" class="px-4 py-2 border rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-french-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-800">Publish & Dispatch Alerts</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Create Midterm / Quiz -->
+  <div id="modalMidterm" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-french-darkCard rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="font-serif text-xl font-bold text-slate-900 dark:text-white">Post Midterm Exam / Quiz</h3>
+        <button onclick="closeModal('modalMidterm')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="midtermForm" onsubmit="saveMidterm(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Exam Title</label>
+          <input type="text" id="mtTitle" required placeholder="e.g. Midterm Exam 1" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Instructions / Coverage</label>
+          <textarea id="mtInstructions" rows="3" required placeholder="Coverage details..." class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Exam Date</label>
+          <input type="date" id="mtDate" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Attach PDF Exam Paper / Material</label>
+          <input type="file" id="mtFileInput" accept=".pdf,.doc,.docx" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalMidterm')" class="px-4 py-2 border rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-french-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-800">Post & Send Alerts</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Submit Homework (Student File Upload) -->
+  <div id="modalSubmitHw" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-french-darkCard rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="font-serif text-xl font-bold text-slate-900 dark:text-white">Submit Homework File</h3>
+        <button onclick="closeModal('modalSubmitHw')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="submitHwForm" onsubmit="submitHomework(event)" class="space-y-3">
+        <input type="hidden" id="submitHwId">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Upload Submission File (PDF / DOCX)</label>
+          <input type="file" id="submitHwFileInput" required accept=".pdf,.doc,.docx,.txt" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-xs">
+          <p class="text-3xs text-slate-400 mt-1">Select your completed homework file from your computer.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Optional Student Comments</label>
+          <textarea id="submitHwText" rows="3" placeholder="Notes for the teacher..." class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalSubmitHw')" class="px-4 py-2 border rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-french-green text-white rounded-xl text-sm font-semibold hover:bg-emerald-700">Submit Homework</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Grade Submission & Upload Corrected File (Teacher) -->
+  <div id="modalGrade" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-french-darkCard rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="font-serif text-xl font-bold text-slate-900 dark:text-white">Grade & Return Corrected File</h3>
+        <button onclick="closeModal('modalGrade')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      
+      <div class="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl space-y-2 text-xs">
+        <div><span class="font-semibold">Student Name:</span> <span id="gradeStudentName">--</span></div>
+        <div>
+          <span class="font-semibold">Student Uploaded File:</span>
+          <a id="gradeSubmissionDownload" href="#" download="" class="text-french-blue underline ml-1 font-bold inline-flex items-center gap-1"><i class="fa-solid fa-download"></i> Download Student Work</a>
+        </div>
+      </div>
+
+      <form id="gradeForm" onsubmit="saveGrade(event)" class="space-y-3">
+        <input type="hidden" id="gradeSubmissionId">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Score Points</label>
+          <input type="number" id="gradeScoreInput" required min="0" max="100" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Teacher Feedback Notes</label>
+          <textarea id="gradeFeedbackInput" rows="3" placeholder="Très bien..." class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Upload Corrected Homework File (PDF/DOCX)</label>
+          <input type="file" id="gradeCorrectedFileInput" accept=".pdf,.doc,.docx" class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalGrade')" class="px-4 py-2 border rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-french-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-800">Save & Return to Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. Announcement Modal -->
+  <div id="modalAnnouncement" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-french-darkCard rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+        <h3 class="font-serif text-xl font-bold text-slate-900 dark:text-white">Post Announcement</h3>
+        <button onclick="closeModal('modalAnnouncement')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="announcementForm" onsubmit="saveAnnouncement(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Title</label>
+          <input type="text" id="ancTitle" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-500 mb-1">Content</label>
+          <textarea id="ancContent" rows="3" required class="w-full px-3 py-2 border rounded-xl dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-sm"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalAnnouncement')" class="px-4 py-2 border rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="px-4 py-2 bg-french-blue text-white rounded-xl text-sm font-semibold hover:bg-blue-800">Post & Dispatch Email Alerts</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- CORE APPLICATION LOGIC -->
+  <script>
+    const GOOGLE_CLIENT_ID = "583715142595-831sg9qbcmdt8gcsc3n85pbv3456o2fh.apps.googleusercontent.com";
+    const TEACHER_EMAIL = "fzoghbour@gmail.com";
+    const LAITH_EMAIL = "almgnahii@gmail.com";
+
+    const NOTIFICATION_EMAILS = ["almgnahii@gmail.com", "fzoghbour@gmail.com"];
+
+    const EMAILJS_PUBLIC_KEY = "Rl2A3hpBq3HjzttGS"; 
+    const EMAILJS_SERVICE_ID = "service_ei8bjij";
+    const EMAILJS_TEMPLATE_ID = "template_yy9k01i";
+
+    const PRELOADED_FLASHCARDS = [
+      { id: 'l1_1', fr: 'Bonjour', en: 'Hello (daytime)', deck: 'Lesson 1', known: false },
+      { id: 'l1_2', fr: 'Bonsoir', en: 'Good evening', deck: 'Lesson 1', known: false },
+      { id: 'l1_3', fr: 'Salut', en: 'Hi (informal)', deck: 'Lesson 1', known: false },
+      { id: 'l1_4', fr: 'Au revoir', en: 'Goodbye', deck: 'Lesson 1', known: false },
+      { id: 'l1_5', fr: 'À bientôt', en: 'See you soon', deck: 'Lesson 1', known: false },
+      { id: 'l1_6', fr: 'Merci', en: 'Thank you', deck: 'Lesson 1', known: false },
+      { id: 'l1_7', fr: "S'il vous plaît", en: 'Please (formal)', deck: 'Lesson 1', known: false },
+      { id: 'l1_8', fr: 'De rien', en: "You're welcome", deck: 'Lesson 1', known: false },
+      { id: 'l1_9', fr: 'Comment ça va ?', en: 'How are you?', deck: 'Lesson 1', known: false },
+      { id: 'l1_10', fr: 'Enchanté(e)', en: 'Nice to meet you', deck: 'Lesson 1', known: false }
+    ];
+
+    const INITIAL_PORTAL_DATA = {
+      lectures: [],
+      flashcards: PRELOADED_FLASHCARDS,
+      homeworks: [],
+      submissions: [],
+      midterms: [],
+      announcements: [
+        { id: 'anc_1', title: 'Bienvenue au cours de français!', content: 'Welcome to French class! Review uploaded lecture files and submit assigned homeworks.', date: new Date().toISOString().slice(0,10), author: 'Teacher' }
+      ]
+    };
+
+    let currentUser = null;
+    let appData = null;
+    let currentTab = 'overview';
+    let currentFcIndex = 0;
+    let filteredCards = [];
+
+    // Helper: Convert File to Base64 String
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    // Role Guard Check
+    function requireTeacherRole() {
+      if (!currentUser || currentUser.role !== 'teacher') {
+        showToast("Permission Denied", "This action is restricted to the teacher.");
+        return false;
+      }
+      return true;
+    }
+
+    // Email Dispatcher
+    function sendEmailNotification(subjectOrData, messageText) {
+      const isObj = typeof subjectOrData === 'object' && subjectOrData !== null;
+      const subject = isObj ? (subjectOrData.subject || "Course Update") : (subjectOrData || "Course Update");
+      const message = isObj ? (subjectOrData.message || "") : (messageText || "");
+
+      NOTIFICATION_EMAILS.forEach(recipientEmail => {
+        if (typeof emailjs !== 'undefined' && EMAILJS_PUBLIC_KEY) {
+          emailjs.init(EMAILJS_PUBLIC_KEY);
+          
+          const payload = {
+            to_email: recipientEmail,
+            to_name: recipientEmail === LAITH_EMAIL ? "Laith Al Mgnahi" : "Fatma (Teacher)",
+            subject: subject,
+            message: message,
+            due_date: isObj ? (subjectOrData.dueDate || "N/A") : "N/A",
+            points: isObj ? (subjectOrData.points || "100") : "100",
+            score: isObj && subjectOrData.score !== undefined ? subjectOrData.score : "N/A",
+            feedback: isObj ? (subjectOrData.feedback || "None") : "None"
+          };
+
+          emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, payload, EMAILJS_PUBLIC_KEY)
+            .catch(err => console.log("EmailJS log:", err));
+        }
+      });
+
+      showToast(`Email Dispatched`, `${subject}`);
+    }
+
+    function showToast(title, message) {
+      const toast = document.getElementById('emailToast');
+      document.getElementById('toastTitle').textContent = title;
+      document.getElementById('toastMessage').textContent = message;
+      
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 4500);
+    }
+
+    function loadAppData() {
+      const stored = localStorage.getItem('french_lms_portal_data');
+      if (stored) {
+        try { appData = JSON.parse(stored); } catch(e) { appData = JSON.parse(JSON.stringify(INITIAL_PORTAL_DATA)); }
+        if (!appData.midterms) appData.midterms = [];
+      } else {
+        appData = JSON.parse(JSON.stringify(INITIAL_PORTAL_DATA));
+        saveAppData();
+      }
+    }
+
+    function saveAppData() {
+      localStorage.setItem('french_lms_portal_data', JSON.stringify(appData));
+      renderUI();
+    }
+
+    function initGoogleAuth() {
+      if (typeof google === 'undefined' || !google.accounts) return;
+      google.accounts.id.initialize({
+        client_id: 583715142595-h1moli5vm0c0umql7vk1vh73k5f7n9s4.apps.googleusercontent.com,
+        callback: handleGoogleCredentialResponse
+      });
+      google.accounts.id.renderButton(
+        document.getElementById("googleSignInBtn"),
+        { theme: "outline", size: "large", shape: "pill", width: 280 }
+      );
+    }
+
+    function handleGoogleCredentialResponse(response) {
+      const jwt = response.credential;
+      const payload = JSON.parse(atob(jwt.split('.')[1]));
+      
+      const email = payload.email.toLowerCase();
+      const isTeacher = email === TEACHER_EMAIL.toLowerCase();
+
+      currentUser = {
+        name: payload.name,
+        email: email,
+        picture: payload.picture,
+        role: isTeacher ? 'teacher' : 'student'
+      };
+
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboardApp').classList.remove('hidden');
+
+      document.getElementById('userAvatar').src = currentUser.picture;
+      document.getElementById('userNameLabel').textContent = currentUser.name;
+      document.getElementById('userRoleBadge').textContent = isTeacher ? 'Teacher (Admin)' : 'Student';
+      
+      document.getElementById('roleBannerBadge').textContent = isTeacher ? 'Teacher Mode' : 'Student Mode';
+      document.getElementById('roleBannerBadge').className = isTeacher ? 'px-2 py-0.5 rounded-full bg-french-red text-white text-xs font-semibold' : 'px-2 py-0.5 rounded-full bg-french-blue text-white text-xs font-semibold';
+      document.getElementById('roleBannerDesc').textContent = `Logged in as ${currentUser.name} (${currentUser.email})`;
+
+      loadAppData();
+    }
+
+    function quickLogin(email, name, role) {
+      currentUser = {
+        name: name,
+        email: email,
+        picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1d3f8f&color=fff`,
+        role: role
+      };
+
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('dashboardApp').classList.remove('hidden');
+
+      document.getElementById('userAvatar').src = currentUser.picture;
+      document.getElementById('userNameLabel').textContent = currentUser.name;
+      document.getElementById('userRoleBadge').textContent = role === 'teacher' ? 'Teacher (Admin)' : 'Student';
+      
+      document.getElementById('roleBannerBadge').textContent = role === 'teacher' ? 'Teacher Mode' : 'Student Mode';
+      document.getElementById('roleBannerBadge').className = role === 'teacher' ? 'px-2 py-0.5 rounded-full bg-french-red text-white text-xs font-semibold' : 'px-2 py-0.5 rounded-full bg-french-blue text-white text-xs font-semibold';
+      document.getElementById('roleBannerDesc').textContent = `Logged in as ${currentUser.name} (${currentUser.email})`;
+
+      loadAppData();
+    }
+
+    function logoutGoogle() {
+      currentUser = null;
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('dashboardApp').classList.add('hidden');
+    }
+
+    function updateRoleUI() {
+      if (!currentUser) return;
+      const isTeacher = currentUser.role === 'teacher';
+      document.querySelectorAll('.teacher-only').forEach(el => {
+        if (isTeacher) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      });
+    }
+
+    function switchTab(tabId) {
+      currentTab = tabId;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.className = "tab-btn px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap text-slate-500 dark:text-slate-400 hover:text-slate-700 border-b-2 border-transparent flex items-center gap-2";
+      });
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) activeBtn.className = "tab-btn active px-3 py-2 text-xs sm:text-sm font-medium rounded-lg whitespace-nowrap border-b-2 border-french-blue text-french-blue dark:text-blue-400 flex items-center gap-2";
+      
+      const activeContent = document.getElementById(`view-${tabId}`);
+      if (activeContent) activeContent.classList.remove('hidden');
+
+      renderUI();
+    }
+
+    function renderUI() {
+      updateRoleUI();
+      renderStats();
+      renderAnnouncements();
+      renderUpcomingDeadlines();
+      renderLectures();
+      renderFlashcards();
+      renderHomework();
+      renderMidterms();
+      renderGradesTable();
+    }
+
+    // TAB 1: OVERVIEW
+    function renderStats() {
+      const totalLec = appData.lectures.length;
+      const doneLec = appData.lectures.filter(l => l.completed).length;
+      document.getElementById('statLectures').textContent = `${doneLec} / ${totalLec}`;
+
+      const userSubmissions = appData.submissions.filter(s => s.studentEmail === (currentUser ? currentUser.email : ''));
+      const pendingHw = appData.homeworks.length - userSubmissions.length;
+      document.getElementById('statHomeworks').textContent = `${Math.max(0, pendingHw)} Pending`;
+
+      const totalFc = appData.flashcards.length;
+      const knownFc = appData.flashcards.filter(f => f.known).length;
+      document.getElementById('statFlashcards').textContent = `${knownFc} / ${totalFc}`;
+
+      const graded = appData.submissions.filter(s => s.status === 'graded');
+      if (graded.length === 0) document.getElementById('statGrade').textContent = '-- %';
+      else {
+        const avg = Math.round(graded.reduce((sum, g) => sum + g.score, 0) / graded.length);
+        document.getElementById('statGrade').textContent = `${avg}%`;
+      }
+    }
+
+    function renderAnnouncements() {
+      const container = document.getElementById('announcementsList');
+      if (appData.announcements.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic">No announcements posted yet.</p>`;
+        return;
+      }
+      container.innerHTML = appData.announcements.map(anc => `
+        <div class="p-4 rounded-xl bg-french-lightBg dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 space-y-1">
+          <div class="flex items-center justify-between">
+            <h4 class="font-semibold text-sm text-slate-900 dark:text-white">${anc.title}</h4>
+            <div class="flex items-center gap-2">
+              <span class="text-3xs text-slate-400 font-mono">${anc.date}</span>
+              <button onclick="deleteAnnouncement('${anc.id}')" class="teacher-only text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 dark:text-slate-300">${anc.content}</p>
+          <p class="text-3xs text-french-blue dark:text-blue-300 font-medium pt-1">— ${anc.author}</p>
+        </div>
+      `).join('');
+      updateRoleUI();
+    }
+
+    function deleteAnnouncement(id) {
+      if (!requireTeacherRole()) return;
+      appData.announcements = appData.announcements.filter(a => a.id !== id);
+      saveAppData();
+    }
+
+    function renderUpcomingDeadlines() {
+      const container = document.getElementById('upcomingDeadlinesList');
+      if (appData.homeworks.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic">No homework created yet.</p>`;
+        return;
+      }
+      container.innerHTML = appData.homeworks.map(hw => {
+        const isDone = appData.submissions.some(s => s.homeworkId === hw.id && s.studentEmail === (currentUser ? currentUser.email : ''));
+        return `
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <div>
+              <h4 class="text-xs font-semibold text-slate-900 dark:text-white">${hw.title}</h4>
+              <p class="text-3xs text-slate-400">Due: ${hw.dueDate}</p>
+            </div>
+            ${isDone ? `<span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-3xs font-semibold">Submitted ✓</span>` : `<button onclick="switchTab('homework')" class="px-2 py-1 bg-french-blue text-white rounded-lg text-3xs font-semibold">Submit</button>`}
+          </div>
+        `;
+      }).join('');
+    }
+
+    // TAB 2: LECTURES
+    function renderLectures() {
+      const container = document.getElementById('lecturesContainer');
+      if (appData.lectures.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center bg-white dark:bg-french-darkCard rounded-2xl border border-slate-200 dark:border-slate-800"><p class="text-sm text-slate-400">No lectures uploaded by the teacher yet.</p></div>`;
+        return;
+      }
+
+      const modulesMap = {};
+      appData.lectures.forEach(lec => {
+        if (!modulesMap[lec.module]) modulesMap[lec.module] = [];
+        modulesMap[lec.module].push(lec);
+      });
+
+      container.innerHTML = Object.keys(modulesMap).map(modName => `
+        <div class="bg-white dark:bg-french-darkCard rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-4">
+          <h3 class="font-serif text-lg font-bold text-french-blue dark:text-blue-400 border-b border-slate-100 dark:border-slate-800 pb-2">${modName}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${modulesMap[modName].map(lec => `
+              <div class="p-4 rounded-xl border ${lec.completed ? 'border-emerald-300 bg-emerald-50/30 dark:bg-emerald-950/20' : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40'} flex flex-col justify-between space-y-3">
+                <div class="space-y-1">
+                  <div class="flex items-start justify-between gap-2">
+                    <h4 class="font-semibold text-sm text-slate-900 dark:text-white">${lec.title}</h4>
+                    ${lec.completed ? '<span class="text-emerald-600 text-xs font-bold">✓ Complete</span>' : ''}
+                  </div>
+                  <p class="text-xs text-slate-600 dark:text-slate-300">${lec.description}</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700/60">
+                  ${lec.fileData ? `
+                    <div class="flex gap-1.5">
+                      <a href="${lec.fileData}" target="_blank" class="px-3 py-1 bg-blue-100 text-french-blue rounded-lg text-xs font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-eye"></i> View</a>
+                      <a href="${lec.fileData}" download="${lec.fileName || 'Lecture_File'}" class="px-3 py-1 bg-french-tint text-french-blue rounded-lg text-xs font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-download"></i> Download</a>
+                    </div>
+                  ` : '<span class="text-3xs text-slate-400">No file attached</span>'}
+                  <div class="flex items-center gap-2">
+                    <button onclick="toggleLectureCompletion('${lec.id}')" class="px-3 py-1 rounded-lg text-xs font-semibold ${lec.completed ? 'bg-slate-200 text-slate-700' : 'bg-french-green text-white'}">
+                      ${lec.completed ? 'Undone' : 'Mark Done'}
+                    </button>
+                    <button onclick="deleteLecture('${lec.id}')" class="teacher-only text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      updateRoleUI();
+    }
+
+    function toggleLectureCompletion(id) {
+      const lec = appData.lectures.find(l => l.id === id);
+      if (lec) { lec.completed = !lec.completed; saveAppData(); }
+    }
+    function deleteLecture(id) {
+      if (!requireTeacherRole()) return;
+      appData.lectures = appData.lectures.filter(l => l.id !== id);
+      saveAppData();
+    }
+
+    // TAB 3: FLASHCARDS
+    function renderFlashcards() {
+      const decks = [...new Set(appData.flashcards.map(f => f.deck))];
+      const filterSelect = document.getElementById('flashcardDeckFilter');
+      const selectedDeck = filterSelect.value;
+      filterSelect.innerHTML = `<option value="ALL">All Lessons (12 Decks)</option>` + decks.map(d => `<option value="${d}">${d}</option>`).join('');
+      filterSelect.value = selectedDeck || 'ALL';
+
+      filteredCards = (filterSelect.value === 'ALL') ? appData.flashcards : appData.flashcards.filter(f => f.deck === filterSelect.value);
+      if (filteredCards.length === 0) return;
+
+      if (currentFcIndex >= filteredCards.length) currentFcIndex = 0;
+      const card = filteredCards[currentFcIndex];
+      document.getElementById('fcDeckBadge').textContent = card.deck;
+      document.getElementById('fcFrenchWord').textContent = card.fr;
+      document.getElementById('fcEnglishWord').textContent = card.en;
+
+      document.getElementById('fcPositionLabel').textContent = `Card ${currentFcIndex + 1} of ${filteredCards.length}`;
+      const knownCount = filteredCards.filter(c => c.known).length;
+      document.getElementById('fcKnownLabel').textContent = `Mastered: ${knownCount} / ${filteredCards.length}`;
+      document.getElementById('fcProgressBar').style.width = `${Math.round((knownCount / filteredCards.length) * 100)}%`;
+      document.getElementById('flashcard').classList.remove('flipped');
+    }
+
+    function flipFlashcard() { document.getElementById('flashcard').classList.toggle('flipped'); }
+    function navigateFlashcard(dir) {
+      if (filteredCards.length === 0) return;
+      currentFcIndex = (currentFcIndex + dir + filteredCards.length) % filteredCards.length;
+      renderFlashcards();
+    }
+    function markFlashcard(isKnown) {
+      if (filteredCards.length === 0) return;
+      filteredCards[currentFcIndex].known = isKnown;
+      saveAppData();
+      navigateFlashcard(1);
+    }
+    function filterFlashcards() { currentFcIndex = 0; renderFlashcards(); }
+    function playCurrentAudio() {
+      if (filteredCards.length === 0) return;
+      const cleanText = filteredCards[currentFcIndex].fr.replace(/…|\.\.\./g, '').replace(/\//g, ' ou ');
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'fr-FR';
+      utterance.rate = 0.9;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // TAB 4: HOMEWORK
+    function renderHomework() {
+      const container = document.getElementById('homeworkContainer');
+      if (appData.homeworks.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center bg-white dark:bg-french-darkCard rounded-2xl border border-slate-200 dark:border-slate-800"><p class="text-sm text-slate-400">No homework assigned by the teacher yet.</p></div>`;
+        return;
+      }
+
+      container.innerHTML = appData.homeworks.map(hw => {
+        const sub = appData.submissions.find(s => s.homeworkId === hw.id && s.studentEmail === (currentUser ? currentUser.email : ''));
+        return `
+          <div class="bg-white dark:bg-french-darkCard rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <h3 class="font-serif text-lg font-bold text-slate-900 dark:text-white">${hw.title}</h3>
+                <p class="text-xs text-slate-400">Due: ${hw.dueDate} · Total Points: ${hw.points}</p>
+              </div>
+              <div>
+                ${sub ? 
+                  (sub.status === 'graded' ? `<span class="px-3 py-1 rounded-full bg-emerald-100 text-french-green text-xs font-bold">Graded: ${sub.score}/${hw.points}</span>` : `<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold">Submitted (Pending Review)</span>`) :
+                  `<span class="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">Not Submitted</span>`
+                }
+              </div>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300">${hw.instructions}</p>
+
+            ${sub ? `
+              <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl space-y-2 text-xs">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-slate-700 dark:text-slate-300">Your Submitted Homework File:</span>
+                  ${sub.fileData ? `<a href="${sub.fileData}" download="${sub.fileName || 'Homework_Submission'}" class="px-3 py-1 bg-french-blue text-white rounded-lg font-bold inline-flex items-center gap-1"><i class="fa-solid fa-download"></i> Download ${sub.fileName || 'File'}</a>` : ''}
+                </div>
+                ${sub.text ? `<p class="font-serif italic text-slate-800 dark:text-slate-200">Notes: ${sub.text}</p>` : ''}
+                ${sub.feedback ? `<div class="mt-2 pt-2 border-t border-slate-200 text-french-blue dark:text-blue-300"><strong>Teacher Feedback:</strong> ${sub.feedback}</div>` : ''}
+                ${sub.correctedFileData ? `<div class="mt-2 pt-2 border-t border-slate-200"><a href="${sub.correctedFileData}" download="${sub.correctedFileName || 'Corrected_Homework'}" class="px-3 py-1.5 bg-french-green text-white rounded-lg text-xs font-bold inline-flex items-center gap-1.5"><i class="fa-solid fa-file-circle-check"></i> Download Teacher's Corrected File</a></div>` : ''}
+              </div>
+            ` : ''}
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+              <button onclick="openSubmitHwModal('${hw.id}')" class="px-4 py-1.5 bg-french-green text-white rounded-xl text-xs font-semibold hover:bg-emerald-700">
+                <i class="fa-solid fa-paper-plane"></i> ${sub ? 'Resubmit Homework File' : 'Submit Homework File'}
+              </button>
+              <button onclick="deleteHomework('${hw.id}')" class="teacher-only text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateRoleUI();
+    }
+
+    function deleteHomework(id) {
+      if (!requireTeacherRole()) return;
+      appData.homeworks = appData.homeworks.filter(h => h.id !== id);
+      appData.submissions = appData.submissions.filter(s => s.homeworkId !== id);
+      saveAppData();
+    }
+
+    // TAB 5: MIDTERMS & QUIZZES
+    function renderMidterms() {
+      const container = document.getElementById('midtermsContainer');
+      if (appData.midterms.length === 0) {
+        container.innerHTML = `<div class="p-8 text-center bg-white dark:bg-french-darkCard rounded-2xl border border-slate-200 dark:border-slate-800"><p class="text-sm text-slate-400">No midterm exams or quizzes posted yet.</p></div>`;
+        return;
+      }
+      container.innerHTML = appData.midterms.map(mt => `
+        <div class="bg-white dark:bg-french-darkCard rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div>
+              <h3 class="font-serif text-lg font-bold text-slate-900 dark:text-white">${mt.title}</h3>
+              <p class="text-xs text-amber-600 dark:text-amber-400 font-semibold"><i class="fa-solid fa-calendar-day"></i> Scheduled Date: ${mt.date}</p>
+            </div>
+            <button onclick="deleteMidterm('${mt.id}')" class="teacher-only text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-700 dark:text-slate-300">${mt.instructions}</p>
+          ${mt.fileData ? `
+            <div class="pt-2 flex gap-2">
+              <a href="${mt.fileData}" target="_blank" class="px-4 py-2 bg-french-blue text-white rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"><i class="fa-solid fa-file-pdf"></i> View Exam File</a>
+              <a href="${mt.fileData}" download="${mt.fileName || 'Exam_Sheet'}" class="px-4 py-2 bg-french-tint text-french-blue rounded-xl text-xs font-semibold inline-flex items-center gap-1.5"><i class="fa-solid fa-download"></i> Download Sheet</a>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+      updateRoleUI();
+    }
+
+    function deleteMidterm(id) {
+      if (!requireTeacherRole()) return;
+      appData.midterms = appData.midterms.filter(m => m.id !== id);
+      saveAppData();
+    }
+
+    // TAB 6: GRADES TABLE
+    function renderGradesTable() {
+      const hwTable = document.getElementById('homeworkSubmissionsTable');
+      if (appData.submissions.length === 0) {
+        hwTable.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-400 italic text-xs">No homework submissions found yet.</td></tr>`;
+        return;
+      }
+      hwTable.innerHTML = appData.submissions.map(sub => {
+        const hw = appData.homeworks.find(h => h.id === sub.homeworkId);
+        return `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+            <td class="p-3 sm:p-4 font-semibold text-slate-900 dark:text-white">${hw ? hw.title : 'Assignment'}</td>
+            <td class="p-3 sm:p-4 text-slate-600 dark:text-slate-300">${sub.studentName}</td>
+            <td class="p-3 sm:p-4">
+              ${sub.fileData ? `<a href="${sub.fileData}" download="${sub.fileName || 'Submission'}" class="px-2.5 py-1 bg-blue-100 text-french-blue rounded-lg text-3xs font-bold inline-flex items-center gap-1"><i class="fa-solid fa-download"></i> ${sub.fileName || 'Download'}</a>` : '<span class="text-3xs text-slate-400">No file</span>'}
+            </td>
+            <td class="p-3 sm:p-4">${sub.status === 'graded' ? '<span class="px-2 py-0.5 rounded bg-emerald-100 text-french-green text-3xs font-semibold">Graded</span>' : '<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-700 text-3xs font-semibold">Pending Review</span>'}</td>
+            <td class="p-3 sm:p-4 font-bold text-slate-900 dark:text-white">${sub.score !== undefined ? sub.score : '--'} / 100</td>
+            <td class="p-3 sm:p-4 text-right">
+              <button onclick="openGradeModal('${sub.id}')" class="teacher-only px-3 py-1 bg-french-blue text-white rounded-lg text-3xs font-semibold hover:bg-blue-800">Grade & Upload Corrected File</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      updateRoleUI();
+    }
+
+    // MODAL HANDLERS
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // TEACHER: UPLOAD LECTURE
+    function openLectureModal() { 
+      if (!requireTeacherRole()) return;
+      document.getElementById('lectureForm').reset(); 
+      openModal('modalLecture'); 
+    }
+    
+    async function saveLecture(e) {
+      e.preventDefault();
+      if (!requireTeacherRole()) return;
+      
+      const lecTitle = document.getElementById('lecTitle').value;
+      const lecModule = document.getElementById('lecModule').value;
+      const lecDesc = document.getElementById('lecDesc').value;
+      const fileInput = document.getElementById('lecFileInput');
+
+      let fileData = "";
+      let fileName = "";
+      if (fileInput.files.length > 0) {
+        fileName = fileInput.files[0].name;
+        fileData = await fileToBase64(fileInput.files[0]);
+      }
+
+      const newLec = {
+        id: 'lec_' + Date.now(),
+        module: lecModule,
+        title: lecTitle,
+        description: lecDesc,
+        fileData: fileData,
+        fileName: fileName,
+        completed: false
+      };
+
+      appData.lectures.push(newLec);
+      saveAppData();
+      closeModal('modalLecture');
+
+      sendEmailNotification({
+        subject: `New Lecture Uploaded: ${lecTitle}`,
+        message: `Your teacher uploaded a new lecture document for ${lecModule}: "${lecTitle}". Log in to view and download the material.`
+      });
+    }
+
+    // TEACHER: CREATE HOMEWORK
+    function openHomeworkModal() { 
+      if (!requireTeacherRole()) return;
+      document.getElementById('homeworkForm').reset(); 
+      openModal('modalHomework'); 
+    }
+    
+    function saveHomework(e) {
+      e.preventDefault();
+      if (!requireTeacherRole()) return;
+      
+      const hwTitle = document.getElementById('hwTitle').value;
+      const hwInstructions = document.getElementById('hwInstructions').value;
+      const hwDueDate = document.getElementById('hwDueDate').value;
+      const hwPoints = parseInt(document.getElementById('hwPoints').value, 10) || 100;
+
+      appData.homeworks.push({
+        id: 'hw_' + Date.now(),
+        title: hwTitle,
+        instructions: hwInstructions,
+        dueDate: hwDueDate,
+        points: hwPoints
+      });
+      saveAppData();
+      closeModal('modalHomework');
+
+      sendEmailNotification({
+        subject: `New Homework Assigned: ${hwTitle}`,
+        message: `Your teacher posted a new homework assignment: "${hwTitle}". Log in to your French Course Hub to submit your completed document.`
+      });
+    }
+
+    // TEACHER: POST MIDTERM
+    function openMidtermModal() { 
+      if (!requireTeacherRole()) return;
+      document.getElementById('midtermForm').reset(); 
+      openModal('modalMidterm'); 
+    }
+    
+    async function saveMidterm(e) {
+      e.preventDefault();
+      if (!requireTeacherRole()) return;
+
+      const mtTitle = document.getElementById('mtTitle').value;
+      const mtDate = document.getElementById('mtDate').value;
+      const mtInstructions = document.getElementById('mtInstructions').value;
+      const fileInput = document.getElementById('mtFileInput');
+
+      let fileData = "";
+      let fileName = "";
+      if (fileInput.files.length > 0) {
+        fileName = fileInput.files[0].name;
+        fileData = await fileToBase64(fileInput.files[0]);
+      }
+
+      appData.midterms.push({
+        id: 'mt_' + Date.now(),
+        title: mtTitle,
+        instructions: mtInstructions,
+        date: mtDate,
+        fileData: fileData,
+        fileName: fileName
+      });
+      saveAppData();
+      closeModal('modalMidterm');
+
+      sendEmailNotification({
+        subject: `New Midterm Exam Scheduled: ${mtTitle}`,
+        message: `A new exam "${mtTitle}" has been scheduled for ${mtDate}. Log in to view syllabus details and download the exam sheet.`
+      });
+    }
+
+    // STUDENT: SUBMIT HOMEWORK FILE
+    function openSubmitHwModal(hwId) {
+      document.getElementById('submitHwForm').reset();
+      document.getElementById('submitHwId').value = hwId;
+      openModal('modalSubmitHw');
+    }
+
+    async function submitHomework(e) {
+      e.preventDefault();
+      const hwId = document.getElementById('submitHwId').value;
+      const text = document.getElementById('submitHwText').value;
+      const fileInput = document.getElementById('submitHwFileInput');
+
+      if (fileInput.files.length === 0) {
+        showToast("File Required", "Please select a homework file to submit.");
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const fileData = await fileToBase64(file);
+
+      appData.submissions = appData.submissions.filter(s => !(s.homeworkId === hwId && s.studentEmail === currentUser.email));
+      appData.submissions.push({
+        id: 'sub_' + Date.now(),
+        homeworkId: hwId,
+        studentName: currentUser.name,
+        studentEmail: currentUser.email,
+        text: text,
+        fileData: fileData,
+        fileName: file.name,
+        correctedFileData: '',
+        correctedFileName: '',
+        date: new Date().toISOString().slice(0, 10),
+        status: 'submitted'
+      });
+
+      saveAppData();
+      closeModal('modalSubmitHw');
+      showToast("Homework Submitted", `Your file "${file.name}" was uploaded successfully.`);
+    }
+
+    // TEACHER: GRADE HOMEWORK & RETURN FILE
+    function openGradeModal(subId) {
+      if (!requireTeacherRole()) return;
+      
+      const sub = appData.submissions.find(s => s.id === subId);
+      if (!sub) return;
+      document.getElementById('gradeSubmissionId').value = sub.id;
+      document.getElementById('gradeStudentName').textContent = sub.studentName;
+      
+      const downloadBtn = document.getElementById('gradeSubmissionDownload');
+      if (sub.fileData) {
+        downloadBtn.href = sub.fileData;
+        downloadBtn.download = sub.fileName || 'Student_Homework';
+        downloadBtn.classList.remove('hidden');
+      } else {
+        downloadBtn.classList.add('hidden');
+      }
+
+      document.getElementById('gradeScoreInput').value = sub.score !== undefined ? sub.score : 100;
+      document.getElementById('gradeFeedbackInput').value = sub.feedback || '';
+
+      openModal('modalGrade');
+    }
+
+    async function saveGrade(e) {
+      e.preventDefault();
+      if (!requireTeacherRole()) return;
+
+      const subId = document.getElementById('gradeSubmissionId').value;
+      const sub = appData.submissions.find(s => s.id === subId);
+      if (sub) {
+        const score = parseInt(document.getElementById('gradeScoreInput').value, 10);
+        const feedback = document.getElementById('gradeFeedbackInput').value;
+        const fileInput = document.getElementById('gradeCorrectedFileInput');
+
+        if (fileInput.files.length > 0) {
+          sub.correctedFileName = fileInput.files[0].name;
+          sub.correctedFileData = await fileToBase64(fileInput.files[0]);
+        }
+
+        sub.score = score;
+        sub.feedback = feedback;
+        sub.status = 'graded';
+        saveAppData();
+
+        const hw = appData.homeworks.find(h => h.id === sub.homeworkId);
+        const hwTitle = hw ? hw.title : 'Assignment';
+        
+        sendEmailNotification({
+          subject: `Homework Graded: ${hwTitle}`,
+          message: `Your teacher graded your submission for "${hwTitle}". Score: ${score}/100. Log in to download your corrected file and feedback.`
+        });
+      }
+      closeModal('modalGrade');
+    }
+
+    // TEACHER: POST ANNOUNCEMENT
+    function openAnnouncementModal() { 
+      if (!requireTeacherRole()) return;
+      document.getElementById('announcementForm').reset(); 
+      openModal('modalAnnouncement'); 
+    }
+    
+    function saveAnnouncement(e) {
+      e.preventDefault();
+      if (!requireTeacherRole()) return;
+
+      const title = document.getElementById('ancTitle').value;
+      const content = document.getElementById('ancContent').value;
+      
+      appData.announcements.unshift({
+        id: 'anc_' + Date.now(),
+        title: title,
+        content: content,
+        date: new Date().toISOString().slice(0, 10),
+        author: currentUser.name
+      });
+      saveAppData();
+      closeModal('modalAnnouncement');
+
+      sendEmailNotification({
+        subject: `New Announcement: ${title}`,
+        message: `Your teacher posted a new course announcement:\n\n"${title}"\n${content}`
+      });
+    }
+
+    // DARK MODE TOGGLE
+    let isDarkMode = false;
+    function toggleDarkMode() {
+      isDarkMode = !isDarkMode;
+      document.documentElement.classList.toggle('dark', isDarkMode);
+      document.getElementById('themeIcon').className = isDarkMode ? 'fa-solid fa-sun text-amber-400' : 'fa-solid fa-moon';
+    }
+
+    window.onload = function() {
+      initGoogleAuth();
+    };
+  </script>
+</body>
+</html>
